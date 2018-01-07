@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="./stylesheets/style.css"/>
+    <title>Sound Mixer</title>
+</head>
+<body>
+
+<h1>Drag and drop the blocks to create your own mix</h1>
+
+<div class="squaredOne">
+    <input type="checkbox" id="audioToggleInput" name="interest" value="1">
+    <label for="audioToggleInput"></label>
+</div>
+
+
+<div id="container">
+
+    <div id="drag-1" class="draggable">
+        <p> 1 </p>
+    </div>
+    <div id="drag-2" class="draggable">
+        <p> 2 </p>
+    </div>
+
+    <div id="drag-3" class="draggable">
+        <p> 3 </p>
+    </div>
+    <div id="drag-4" class="draggable">
+        <p> 4 </p>
+    </div>
+
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript" src="./javascripts/interact.min.js"></script>
+<script type="text/javascript" src="javascripts/AudioMixer.js"></script>
+<script type="text/javascript" src="javascripts/app.js"></script>
+</body>
+
+</html>

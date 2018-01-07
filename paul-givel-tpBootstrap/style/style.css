@@ -1,0 +1,46 @@
+#top{
+    width:100%;
+}
+
+.header{
+    background-color: aquamarine;
+    margin-bottom: 0;
+}
+
+#site-footer{
+    background-color: darkgoldenrod;
+}
+
+#projects{
+    background-color: papayawhip;
+}
+
+#team{
+    background-color:moccasin;
+}
+
+#contact{
+    background-color: cornsilk;
+}
+
+.team-member{
+    font-weight: 800;
+    padding-top: 10pt;
+}
+
+.full-width{
+    width:100%;
+}
+
+.section{
+    padding: 10pt;
+}
+
+#team img{
+    padding: 10pt;
+}
+
+footer{
+    text-align: right;
+    padding: 20pt;
+}

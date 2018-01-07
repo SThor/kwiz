@@ -1,0 +1,26 @@
+body {
+    font: 12pt "Lucida Grande", Helvetica, Arial, sans-serif;
+    background-color: #edfbf8;
+}
+.jumbotron{
+    margin-top: -50px;
+    max-height:200px;
+    background-color: lightgray;
+}
+.question-block, #clients {
+    background-color: lightgray;
+    margin:10px;
+    padding:10px;
+    border-radius: 10px;
+}
+
+.question{
+    font-weight: bold;
+}
+.options{
+    margin-bottom:10px;
+    margin-left: 40px;
+}
+.option{
+    padding: 5px;
+}
