@@ -1,7 +1,9 @@
 body {
     font: 12pt "Lucida Grande", Helvetica, Arial, sans-serif;
     background-color: #edfbf8;
+    min-height: 100%;
 }
+
 .jumbotron{
     margin-top: -50px;
     max-height:200px;

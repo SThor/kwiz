@@ -25,9 +25,14 @@
         <h1>Kwizzz</h1>
         <p>Interactive and Multi-User Quizz.</p>
     </div>
+    <div class="row">
+        <p class="col-md-6" id="player_name"></p>
+        <p class="col-md-6 text-right" id="nb_of_players"></p>
+    </div>
     <!-- Main content. WARNING, DO NOT ADD ELEMENT IN THERE IT WILL BE DELETED -->
+    <div class="row" id="alert_container"></div>
     <div id="content" class="row">
-        <form class="form-horizontal">
+        <form class="form-horizontal col-md-12 row">
             <div class="form-group">
                 <label class="control-label col-sm-2" for="nickname">Pseudo:</label>
                 <div class="col-sm-10">
@@ -45,7 +50,7 @@
         <table class="table col-xs-12" id="playersTable">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <!-- <th>ID</th> -->
                     <th>Pseudo</th>
                     <th>Score</th>
                 </tr>
@@ -67,11 +72,16 @@
     socket.on(EVENT_CLIENT_COUNT,(data)=>{
         var text;
         if(data["count"]>1){
-            text = " joueurs en ligne."
+            text = " clients en ligne."
         }else{
-            text = " joueur en ligne."
+            text = " client en ligne."
         }
         document.getElementById("clientCount").innerText = data["count"]+text;
+
+        var waitCounter = document.getElementById("wait_counter");
+        if(typeof waitCounter !== 'undefined' && waitCounter!== null){
+            waitCounter.innerHTML= document.getElementById("playersTable").rows.length-1+"/"+data.count;
+        }
     });
 
     socket.on(EVENT_PLAYERS,(data)=>{
@@ -82,13 +92,13 @@
             playersTable.removeChild(playersTable.children[1]);
         }
 
-        for(var playerID in players){
+        for(let playerID in players){
             if(players.hasOwnProperty(playerID)){
                 line = document.createElement('tr');
 
-                id = document.createElement('td');
+                /*id = document.createElement('td');
                 id.innerHTML = players[playerID].id;
-                line.appendChild(id);
+                line.appendChild(id);*/
 
                 nickname = document.createElement('td');
                 nickname.innerHTML = players[playerID].nickname;
@@ -101,13 +111,40 @@
                 playersTable.appendChild(line);
             }
         }
+
+        let nbPlayers = playersTable.rows.length-1;
+        if(nbPlayers > 0){
+            document.getElementById('nb_of_players').innerHTML = "Nombre de joueurs : "+nbPlayers;
+        }
+
+        var waitCounter = document.getElementById("wait_counter");
+        if(typeof waitCounter !== 'undefined' && waitCounter!== null){
+            var clientsCount = document.getElementById("clientCount").innerHTML.substr(0,1);
+            waitCounter.innerHTML=nbPlayers+"/"+clientsCount;
+        }
     });
+
 
     function login(){
         var nickname = document.getElementById("nickname").value;
-        console.log(nickname+" "+socket);
-        socket.emit(EVENT_LOGGED_IN,{id:socket["id"],nickname:nickname});
-        kwiz.start(socket);
+
+        if(nickname === ""){
+            document.getElementById("alert_container").innerHTML = "<div class='alert alert-warning alert-dismissable'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><strong>Attention !</strong> Vous n'avez pas entré de pseudo.</div>";
+        }else{
+            socket.on(EVENT_NICKNAME_TEST_RESPONSE,nicknameTestResponse)
+            socket.emit(EVENT_TEST_NICKNAME,{id:socket["id"],nickname:nickname});
+        }
+    }
+
+
+    function nicknameTestResponse(data) {
+        if(data.nicknameTaken == 0){
+            document.getElementById('player_name').innerHTML = "Pseudo : "+data.nickname;
+            socket.emit(EVENT_LOGGED_IN,{id:socket["id"],nickname:data.nickname});
+            kwiz.start(socket);
+        }else{
+            document.getElementById("alert_container").innerHTML = "<div class='alert alert-danger alert-dismissable'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><strong>Attention !</strong> Ce pseudo est déjà pris.</div>";
+        }
     }
 </script>
 
