@@ -13,9 +13,14 @@
     <!-- Socket.io scripts (from node module)-->
     <script src="/socket.io/socket.io.js"></script>
 
-    <!-- Custom Styles and Scripts -->
+
+    <!-- Google JSAPI, that allows us to load Google Charts -->
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <!-- Custom Styles and scripts-->
     <link rel="stylesheet" href="stylesheets/style.css">
     <script src="scripts/kwiz.js"></script>
+    <script src="scripts/main.js"></script>
 
 </head>
 <body>
@@ -23,11 +28,12 @@
 <div class="container">
     <div class="jumbotron">
         <h1>Kwizzz</h1>
-        <p>Interactive and Multi-User Quizz.</p>
+        <p>Quiz interactif et multi-utilisateur.</p>
     </div>
     <div class="row">
-        <p class="col-md-6" id="player_name"></p>
-        <p class="col-md-6 text-right" id="nb_of_players"></p>
+        <p class="col-md-4" id="player_name"></p>
+        <p class="col-md-4 text-center" id="player_score"></p>
+        <p class="col-md-4 text-right" id="nb_of_players"></p>
     </div>
     <!-- Main content. WARNING, DO NOT ADD ELEMENT IN THERE IT WILL BE DELETED -->
     <div class="row" id="alert_container"></div>
@@ -46,7 +52,7 @@
     </div>
 
     <div class="row" id="clients">
-        <p class="col-xs-12" id="clientCount">Aucun joueur en ligne.</p>
+        <p class="col-xs-12" id="clientCount">Aucun client en ligne.</p>
         <table class="table col-xs-12" id="playersTable">
             <thead>
                 <tr>
@@ -60,93 +66,29 @@
 
 </div>
 
+<!-- Modal score box -->
+<div class="modal fade" id="endModal" tabindex="-1" role="dialog" aria-labelledby="endModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="endModalTitle">Fin du kwizz !</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="googlechart"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <footer id="site-footer" class="contain well">
     <span class="col-xs-6 pull-right text-right">Copyright &copy;KWIZZZ 2017</span>
 </footer>
-
-<script language="javascript">
-
-    let socket = io(); //'http://localhost:8080'
-
-    socket.on(EVENT_CLIENT_COUNT,(data)=>{
-        var text;
-        if(data["count"]>1){
-            text = " clients en ligne."
-        }else{
-            text = " client en ligne."
-        }
-        document.getElementById("clientCount").innerText = data["count"]+text;
-
-        var waitCounter = document.getElementById("wait_counter");
-        if(typeof waitCounter !== 'undefined' && waitCounter!== null){
-            waitCounter.innerHTML= document.getElementById("playersTable").rows.length-1+"/"+data.count;
-        }
-    });
-
-    socket.on(EVENT_PLAYERS,(data)=>{
-        var players = data['players'];
-        var playersTable = document.getElementById("playersTable");
-
-        while (playersTable.children[1]) {
-            playersTable.removeChild(playersTable.children[1]);
-        }
-
-        for(let playerID in players){
-            if(players.hasOwnProperty(playerID)){
-                line = document.createElement('tr');
-
-                /*id = document.createElement('td');
-                id.innerHTML = players[playerID].id;
-                line.appendChild(id);*/
-
-                nickname = document.createElement('td');
-                nickname.innerHTML = players[playerID].nickname;
-                line.appendChild(nickname);
-
-                score = document.createElement('td');
-                score.innerHTML = players[playerID].score;
-                line.appendChild(score);
-
-                playersTable.appendChild(line);
-            }
-        }
-
-        let nbPlayers = playersTable.rows.length-1;
-        if(nbPlayers > 0){
-            document.getElementById('nb_of_players').innerHTML = "Nombre de joueurs : "+nbPlayers;
-        }
-
-        var waitCounter = document.getElementById("wait_counter");
-        if(typeof waitCounter !== 'undefined' && waitCounter!== null){
-            var clientsCount = document.getElementById("clientCount").innerHTML.substr(0,1);
-            waitCounter.innerHTML=nbPlayers+"/"+clientsCount;
-        }
-    });
-
-
-    function login(){
-        var nickname = document.getElementById("nickname").value;
-
-        if(nickname === ""){
-            document.getElementById("alert_container").innerHTML = "<div class='alert alert-warning alert-dismissable'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><strong>Attention !</strong> Vous n'avez pas entré de pseudo.</div>";
-        }else{
-            socket.on(EVENT_NICKNAME_TEST_RESPONSE,nicknameTestResponse)
-            socket.emit(EVENT_TEST_NICKNAME,{id:socket["id"],nickname:nickname});
-        }
-    }
-
-
-    function nicknameTestResponse(data) {
-        if(data.nicknameTaken == 0){
-            document.getElementById('player_name').innerHTML = "Pseudo : "+data.nickname;
-            socket.emit(EVENT_LOGGED_IN,{id:socket["id"],nickname:data.nickname});
-            kwiz.start(socket);
-        }else{
-            document.getElementById("alert_container").innerHTML = "<div class='alert alert-danger alert-dismissable'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><strong>Attention !</strong> Ce pseudo est déjà pris.</div>";
-        }
-    }
-</script>
 
 </body>
 </html>

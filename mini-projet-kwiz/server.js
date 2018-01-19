@@ -63,7 +63,7 @@ io.on('connection', function (socket) {
         for(let qID=0;qID<quiz.quiz.length;qID++){
             let question = quiz.quiz[qID];
             delete playersAnswers[question.id][socket.id];
-            updateAnswersCounters(question.id);
+            updateAnswersCounters(question.id, null);
         }
 
         //remove player
@@ -87,7 +87,7 @@ io.on('connection', function (socket) {
     });
 });
 
-function updateAnswersCounters(qID) {
+function updateAnswersCounters(qID, socket) {
     var answersCounters = [];
     let questionAnswers = playersAnswers[qID];
     for(let uID in questionAnswers){
@@ -103,11 +103,38 @@ function updateAnswersCounters(qID) {
     io.emit(EVENT_UPDATE_ANSWERS,{qID: qID, answers:answersCounters});
 }
 
+function refreshScores() {
+    for (let i = 0; i < Object.keys(players).length; i++) {
+        let uID = Object.keys(players)[i];
+        var score = 0;
+
+        for (let qID = 0; qID < quiz.quiz.length; qID++) {
+            let question = quiz.quiz[qID];
+
+            //filter for questions that are finished
+            let nbOfAnswers = 0;
+            for (let i = 0; i < Object.keys(players).length; i++) {
+                if (typeof (playersAnswers[question.id][Object.keys(players)[i]]) !== 'undefined') {
+                    nbOfAnswers++;
+                }
+            }
+            if (nbOfAnswers === Object.keys(players).length) {
+                let userAnswer = quiz.quiz[qID].options[playersAnswers[question.id][uID]];
+                if (userAnswer === question.answer) {
+                    score++;
+                }
+            }
+        }
+        players[uID].score = score;
+    }
+    io.emit(EVENT_PLAYERS, {players: players});
+}
+
 function answered(data, socket) {
     let garbage = 'radio_' + data.qID + '_';
     playersAnswers[data.qID][data.uID] = data.optionId.replace(garbage,'');
 
-    updateAnswersCounters(data.qID);
+    updateAnswersCounters(data.qID, socket);
 
     let nbOfAnswers = 0;
     for(let i=0; i<Object.keys(players).length; i++){
@@ -122,27 +149,11 @@ function answered(data, socket) {
         //show answer for question to clients
         //compute & send scores
 
-        scores = {};
-
         let qNumber = data.qID.replace('q','') - 1;
 
         io.emit(EVENT_EVERY_PLAYER_ANSWERED,{qID:data.qID,answer:quiz.quiz[qNumber].answer});
 
-        for(let i=0; i<Object.keys(players).length; i++){
-            let uID = Object.keys(players)[i];
-            var score = 0;
-
-            for(let qID=0;qID<quiz.quiz.length;qID++){
-                let question = quiz.quiz[qID];
-                let userAnswer = quiz.quiz[qID].options[playersAnswers[question.id][uID]];
-                if(userAnswer === question.answer){
-                    score++;
-                }
-            }
-            players[uID].score = score;
-        }
-
-        io.emit(EVENT_PLAYERS,{players:players});
+        refreshScores();
     }
 }
 

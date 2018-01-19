@@ -26,3 +26,37 @@ body {
 .option{
     padding: 5px;
 }
+
+.wait {
+    margin: auto;
+    width: 70px;
+    text-align: center;
+}
+
+.wait > div {
+    width: 10px;
+    height: 10px;
+    background-color: #333;
+    margin: 5px;
+
+    border-radius: 100%;
+    display: inline-block;
+    animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+}
+
+.wait .w1 {
+    animation-delay: -0.32s;
+}
+
+.wait .w2 {
+    animation-delay: -0.16s;
+}
+
+@keyframes sk-bouncedelay {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1.0);
+    }
+}

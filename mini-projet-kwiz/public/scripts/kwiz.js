@@ -10,11 +10,11 @@ const EVENT_WAITING_PAGE = "waiting_page";
 const EVENT_TEST_NICKNAME = "test_nickname";
 const EVENT_NICKNAME_TEST_RESPONSE = "nickname_test_response";
 
-var kwiz;
-kwiz = {
+const kwiz = {
     socket: 'undefined',
     content: 'undefined',
-    quiz: 'undefined'
+    quiz: 'undefined',
+    graphData: 'undefined'
 };
 
 
@@ -41,33 +41,35 @@ kwiz.createWaitingPage = function () {
 
     var title, counterP;
     title = document.createElement("h1");
-    title.innerHTML = "Waiting for all players to login <span id='wait'>.</span>";
+    title.innerHTML = "En attente des autres joueurs  ";
     title.setAttribute("class","text-center");
+    title.setAttribute("id", "wait_title");
 
-    var clientsCount = document.getElementById("clientCount").innerHTML.substr(0,1);
-    var playersCount = document.getElementById("playersTable").rows.length-1;
+    let clientsCount = document.getElementById("clientCount").innerHTML.substr(0, 1);
+    let playersCount = document.getElementById("playersTable").rows.length - 1;
 
     counterP = document.createElement("p");
-    counterP.innerHTML = "Logged-in players: <span id='wait_counter'>"+playersCount+"/"+clientsCount+"</span>";
+    counterP.innerHTML = "Joueurs connectés : <span id='wait_counter'>" + playersCount + "/" + clientsCount + "</span>";
     counterP.setAttribute("class","text-center");
 
-    window.dotsGointUp = true;
-    var dots = window.setInterval( function () {
-       var wait = document.getElementById("wait");
-       if(typeof wait !== 'undefined' && wait!== null){
-           if(window.dotsGointUp){
-               wait.innerHTML += ".";
-           }else{
-               wait.innerHTML = wait.innerHTML.substring(1, wait.innerHTML.length);
-               if(wait.innerHTML === "")
-                   window.dotsGointUp = true;
-           }
-           if( wait.innerHTML.length > 6 )
-               window.dotsGointUp = false;
-       }
-    }, 100);
+    // window.dotsGointUp = true;
+    // let dots = window.setInterval( function () {
+    //    let wait = document.getElementById("wait");
+    //    if(typeof wait !== 'undefined' && wait!== null){
+    //        if(window.dotsGointUp){
+    //            wait.innerHTML += ".";
+    //        }else{
+    //            wait.innerHTML = wait.innerHTML.substring(1, wait.innerHTML.length);
+    //            if(wait.innerHTML === "")
+    //                window.dotsGointUp = true;
+    //        }
+    //        if( wait.innerHTML.length > 6 )
+    //            window.dotsGointUp = false;
+    //    }
+    // }, 100);
 
     kwiz.content.appendChild(title);
+    kwiz.content.innerHTML += "<div class='wait'><div class='w1'></div><div class='w2'></div><div class='w3'></div></div>";
     kwiz.content.appendChild(counterP);
 };
 
@@ -194,49 +196,74 @@ kwiz.createClickListener = function (radio) {
 
 
 kwiz.updateAnswers = function (data) {
-    var answers = data['answers'];
+    let answers = data['answers'];
 
     //clear answers counters
-    var answersP = document.querySelectorAll("#"+data.qID+" .radio p");
-    for(var i=0; i<answersP.length; i++){
-        var paragraph = answersP[i];
+    let answersP = document.querySelectorAll("#" + data.qID + " .radio p");
+    for (let i = 0; i < answersP.length; i++) {
+        let paragraph = answersP[i];
         paragraph.innerHTML = '';
     }
 
 
-    for(var optionID in answers){
-        if(!answers.hasOwnProperty(optionID) || answers[optionID]=== null) continue;
+    let radiosChecked = document.querySelectorAll('input[name=' + data.qID + ']:checked');
 
-        var paragraphID = 'p_' + data.qID + '_' + optionID;
+    if (radiosChecked.length !== 0) {
+        for (let optionID in answers) {
+            if (!answers.hasOwnProperty(optionID) || answers[optionID] === null) continue;
 
-        var text;
-        if(answers[optionID]>1){
-            text = "joueurs ont choisi cette réponse";
-        }else{
-            text = "joueur a choisi cette réponse";
+            let paragraphID = 'p_' + data.qID + '_' + optionID;
+
+            let text;
+            if (answers[optionID] > 1) {
+                text = "joueurs ont choisi cette réponse";
+            } else {
+                text = "joueur a choisi cette réponse";
+            }
+            document.getElementById(paragraphID).innerHTML = '(' + answers[optionID] + " " + text + ')';
         }
-        document.getElementById(paragraphID).innerHTML = '('+answers[optionID]+" "+text+')';
     }
+
 };
 
 kwiz.everyPlayerAnswered = function(data){
-    //prevent from changing answer
-    var qID = data.qID;
+    let qID = data.qID;
 
-    var qNumber = data.qID.replace('q','') - 1;
-    question = kwiz.quiz[qNumber];
+    let qNumber = data.qID.replace('q', '') - 1;
+    let question = kwiz.quiz[qNumber];
 
     for(let optionID = 0; optionID < question.options.length; optionID++){
-        var option = question.options[optionID];
+        let option = question.options[optionID];
 
-        var radioID = 'radio_' + qID + '_' + optionID;
-        document.getElementById(radioID).disabled = true;
+        let radioID = 'radio_' + qID + '_' + optionID;
+        let radioButton = document.getElementById(radioID);
+        radioButton.disabled = true;
 
-        var labelID = 'label_' + qID + '_' + optionID;
+        // show correct answer
+        let labelID = 'label_' + qID + '_' + optionID;
+        let questionDiv = document.getElementById(qID);
+        questionDiv.style.borderWidth = "2px";
         if(option === data.answer){
-            document.getElementById(labelID).style.color = "green";
-        }else{
-            document.getElementById(labelID).style.color = "red";
+            document.getElementById(labelID).style.color = "#155724";
+            // show if player answered correctly
+            if (radioButton.checked) {
+                questionDiv.style.backgroundColor = "#d4edda";
+                questionDiv.style.borderColor = "#c3e6cb";
+            } else {
+                questionDiv.style.backgroundColor = "#f2dede";
+                questionDiv.style.borderColor = "#ebccd1";
+            }
+        } else {
+            document.getElementById(labelID).style.color = "#a94442";
         }
+    }
+
+    let radiosUnchecked = document.querySelectorAll("input[type='radio']:enabled");
+    if (radiosUnchecked.length === 0) {
+        var options = {'title': 'Scores finaux'};
+        var chart = new google.visualization.BarChart(document.getElementById("googlechart"));
+        chart.draw(kwiz.graphData, options);
+        $("#endModal").modal('show');
+
     }
 };
